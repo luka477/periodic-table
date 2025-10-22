@@ -62,7 +62,7 @@ function PeriodicTableApp() {
         overflow: "hidden",
       }}
     >
-      {/* moving background */}
+      {/* Animated gradient background */}
       <div
         style={{
           position: "absolute",
@@ -75,6 +75,7 @@ function PeriodicTableApp() {
           filter: "blur(100px)",
         }}
       />
+
       <style>
         {`
           @keyframes moveGradient {
@@ -83,25 +84,9 @@ function PeriodicTableApp() {
             100% {background-position: 0% 50%;}
           }
 
-          @media (max-width: 1024px) {
-            .periodic-grid {
-              grid-template-columns: repeat(12, 1fr);
-            }
-          }
-
-          @media (max-width: 768px) {
-            .periodic-grid {
-              grid-template-columns: repeat(8, 1fr);
-            }
-          }
-
-          @media (max-width: 480px) {
-            .periodic-grid {
-              grid-template-columns: repeat(5, 1fr);
-            }
-            .element-box {
-              padding: 4px;
-            }
+          @keyframes fadeIn {
+            from {opacity: 0; transform: scale(0.95);}
+            to {opacity: 1; transform: scale(1);}
           }
         `}
       </style>
@@ -117,6 +102,7 @@ function PeriodicTableApp() {
           პერიოდული სისტემა
         </h1>
 
+        {/* Category buttons */}
         <div
           style={{
             display: "flex",
@@ -152,64 +138,75 @@ function PeriodicTableApp() {
           ))}
         </div>
 
+        {/* Periodic Table with horizontal scroll on mobile */}
         {loading ? (
           <p>იტვირთება...</p>
         ) : (
           <div
-            className="periodic-grid"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(18, 1fr)",
-              gap: "6px",
-              justifyContent: "center",
+              overflowX: "auto",
+              overflowY: "hidden",
+              WebkitOverflowScrolling: "touch",
               marginTop: "20px",
-              paddingBottom: "80px",
+              paddingBottom: "60px",
             }}
           >
-            {filtered.map((el) => (
-              <div
-                key={el.number}
-                className="element-box"
-                onMouseEnter={(e) => {
-                  setHovered(el);
-                  const rect = e.target.getBoundingClientRect();
-                  setHoverPos({ x: rect.x + rect.width / 2, y: rect.y });
-                }}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => setSelected(el)}
-                style={{
-                  gridColumn: el.xpos,
-                  gridRow: el.ypos,
-                  padding: "8px 6px",
-                  background: categoryColors[el.category] || "lightgray",
-                  borderRadius: "10px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  transform:
-                    hovered?.number === el.number ? "scale(1.2)" : "scale(1)",
-                  boxShadow:
-                    hovered?.number === el.number
-                      ? "0 0 25px rgba(255,255,255,0.4)"
-                      : "none",
-                  transition: "transform 0.25s ease, box-shadow 0.25s ease",
-                  color: "#111",
-                }}
-              >
-                <div style={{ fontSize: "10px" }}>{el.number}</div>
+            <div
+              className="periodic-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(18, minmax(60px, 1fr))",
+                gap: "6px",
+                justifyContent: "center",
+                minWidth: "900px", // ensures full table width for scroll
+                margin: "0 auto",
+              }}
+            >
+              {filtered.map((el) => (
                 <div
+                  key={el.number}
+                  onMouseEnter={(e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    setHovered(el);
+                    setHoverPos({ x: rect.x + rect.width / 2, y: rect.y });
+                  }}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => setSelected(el)}
                   style={{
-                    fontSize: "clamp(14px, 4vw, 20px)",
-                    fontWeight: "bold",
+                    gridColumn: el.xpos,
+                    gridRow: el.ypos,
+                    padding: "8px 6px",
+                    background: categoryColors[el.category] || "lightgray",
+                    borderRadius: "10px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    transform:
+                      hovered?.number === el.number ? "scale(1.15)" : "scale(1)",
+                    boxShadow:
+                      hovered?.number === el.number
+                        ? "0 0 25px rgba(255,255,255,0.4)"
+                        : "none",
+                    transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                    color: "#111",
                   }}
                 >
-                  {el.symbol}
+                  <div style={{ fontSize: "10px" }}>{el.number}</div>
+                  <div
+                    style={{
+                      fontSize: "clamp(14px, 4vw, 20px)",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {el.symbol}
+                  </div>
+                  <div style={{ fontSize: "9px" }}>{el.name}</div>
                 </div>
-                <div style={{ fontSize: "9px" }}>{el.name}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
+        {/* Hover tooltip */}
         {hovered && (
           <div
             style={{
@@ -234,6 +231,7 @@ function PeriodicTableApp() {
           </div>
         )}
 
+        {/* Modal */}
         {selected && (
           <div
             onClick={() => setSelected(null)}
@@ -246,12 +244,13 @@ function PeriodicTableApp() {
               justifyContent: "center",
               zIndex: 10,
               padding: "10px",
+              animation: "fadeIn 0.3s ease",
             }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
               style={{
-                background: "white",
+                background: "rgba(255,255,255,0.95)",
                 padding: "20px",
                 borderRadius: "16px",
                 width: "100%",
@@ -259,6 +258,8 @@ function PeriodicTableApp() {
                 textAlign: "left",
                 overflowY: "auto",
                 maxHeight: "80vh",
+                color: "#111",
+                backdropFilter: "blur(10px)",
               }}
             >
               <button
@@ -274,10 +275,12 @@ function PeriodicTableApp() {
                 ✕
               </button>
               <h2>{selected.name}</h2>
-              <p>Symbol: {selected.symbol}</p>
-              <p>Atomic Number: {selected.number}</p>
-              <p>Category: {selected.category}</p>
-              {selected.summary && <p>{selected.summary}</p>}
+              <p><strong>Symbol:</strong> {selected.symbol}</p>
+              <p><strong>Atomic Number:</strong> {selected.number}</p>
+              <p><strong>Category:</strong> {selected.category}</p>
+              {selected.summary && (
+                <p style={{ marginTop: "10px" }}>{selected.summary}</p>
+              )}
               {selected.source && (
                 <a href={selected.source} target="_blank" rel="noreferrer">
                   Read more ↗
